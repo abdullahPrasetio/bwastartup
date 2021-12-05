@@ -5,3 +5,6 @@ package handler
 // service yang menentukan repository mana yang digunakan atau call
 // repository :FindAll, FindByUserID
 // db
+
+// type campaignHandler struct {
+// }

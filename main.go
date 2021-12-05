@@ -31,8 +31,9 @@ func main() {
 	userHandler := handler.NewUserHandler(userService, authService)
 
 	campaignRepository := campaign.NewRepository(db)
+	campaignService := campaign.NewService(campaignRepository)
 	// campaignService:=campaign.
-	campaigns, err := campaignRepository.FindAll()
+	campaigns, err := campaignService.FindCampaigns(0)
 
 	fmt.Println(len(campaigns))
 	for _, campaign := range campaigns {
