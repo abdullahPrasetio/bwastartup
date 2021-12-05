@@ -58,7 +58,7 @@ func (h *userHandler) Login(c *gin.Context) {
 		errors := helper.FormatValidationError(err)
 		errorMessage := gin.H{"errors": errors}
 
-		response := helper.APIResponseError("Login Error", http.StatusUnprocessableEntity, errorMessage)
+		response := helper.APIResponseError("Authentication Failed", http.StatusUnprocessableEntity, errorMessage)
 		c.JSON(http.StatusUnprocessableEntity, response)
 		return
 	}
@@ -67,7 +67,7 @@ func (h *userHandler) Login(c *gin.Context) {
 	if err != nil {
 		errorMessage := gin.H{"errors": err.Error()}
 
-		response := helper.APIResponseError("Login Error", http.StatusUnprocessableEntity, errorMessage)
+		response := helper.APIResponseError("Authentication Failed", http.StatusUnprocessableEntity, errorMessage)
 		c.JSON(http.StatusUnprocessableEntity, response)
 		return
 	}
@@ -76,4 +76,40 @@ func (h *userHandler) Login(c *gin.Context) {
 	response := helper.APIResponseSuccess("Authentication success", formatter)
 	c.JSON(http.StatusOK, response)
 
+}
+
+func (h *userHandler) CheckEmailAvailability(c *gin.Context) {
+	// ada input email dari user
+	// input email di mapping ke struct input
+	// struct di input di passing ke service
+	// service akan manggil repository - email sudah ada atau belum
+	// repository -db
+	var input user.CheckEmailInput
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessage := gin.H{"errors": errors}
+
+		response := helper.APIResponseError("Email checking failed", http.StatusUnprocessableEntity, errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	IsEmailAvailable, err := h.userService.IsEmailAvailable(input)
+	if err != nil {
+		errorMessage := gin.H{"errors": "Server error"}
+
+		response := helper.APIResponseError("Email checking failed", http.StatusUnprocessableEntity, errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+	data := gin.H{
+		"is_available": IsEmailAvailable,
+	}
+	metaMessage := "Email has been registered"
+	if IsEmailAvailable {
+		metaMessage = "Email is availables"
+	}
+	response := helper.APIResponseSuccess(metaMessage, data)
+	c.JSON(http.StatusOK, response)
 }
