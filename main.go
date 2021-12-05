@@ -4,6 +4,7 @@ import (
 	"bwastartup/auth"
 	"bwastartup/handler"
 	"bwastartup/user"
+	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,23 @@ func main() {
 	authService := auth.NewService()
 	userHandler := handler.NewUserHandler(userService, authService)
 
+	jwtToken, err := authService.ValidateToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyfQ.q_DQZ5GQyqkIC8mQjWhEXZOMOOBywYjf8xog-nWUBUM")
+	if err != nil {
+		fmt.Println("ERROR")
+		fmt.Println("ERROR")
+		fmt.Println("ERROR")
+	}
+
+	if jwtToken.Valid {
+		fmt.Println("VALID")
+		fmt.Println("VALID")
+		fmt.Println("VALID")
+	} else {
+
+		fmt.Println("INVALID")
+		fmt.Println("INVALID")
+		fmt.Println("INVALID")
+	}
 	router := gin.Default()
 	api := router.Group("/api/v1")
 	api.POST("/register", userHandler.RegisterUser) //di contoh users
