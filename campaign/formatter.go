@@ -2,12 +2,13 @@ package campaign
 
 type CampaignFormatter struct {
 	ID               int    `json:"id"`
-	UserId           int    `json:"user_id`
-	Name             string `json:"name`
-	ShortDescription string `json:"short_description`
-	ImageURL         string `json:"image_url`
-	GoalAmount       int    `json:"goal_amount`
-	CurrentAmount    int    `json:"current_amount`
+	UserId           int    `json:"user_id"`
+	Name             string `json:"name"`
+	ShortDescription string `json:"short_description"`
+	ImageURL         string `json:"image_url"`
+	GoalAmount       int    `json:"goal_amount"`
+	CurrentAmount    int    `json:"current_amount"`
+	Slug             string `json:"slug"`
 }
 
 func FormatCampaign(campaign Campaign) CampaignFormatter {
@@ -23,6 +24,7 @@ func FormatCampaign(campaign Campaign) CampaignFormatter {
 		ImageURL:         campaignImages,
 		GoalAmount:       campaign.GoalAmount,
 		CurrentAmount:    campaign.GoalAmount,
+		Slug:             campaign.Slug,
 	}
 
 	return campaignFormatter
