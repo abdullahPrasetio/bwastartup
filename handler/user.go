@@ -140,8 +140,11 @@ func (h *userHandler) UploadAvatar(c *gin.Context) {
 	// repo update data user simpan lokasi file
 
 	file, err := c.FormFile("avatar")
+
+	// Ambil current user
+	currentUser := c.MustGet("currentUser").(user.User)
 	// HArusnya dari JwT
-	userID := 1
+	userID := currentUser.ID
 
 	if err != nil {
 		data := gin.H{"is_uploaded": false}
