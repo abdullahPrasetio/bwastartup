@@ -46,13 +46,13 @@ func (h *campaignHandler) GetCampaign(c *gin.Context) {
 	err := c.ShouldBindUri(&input)
 
 	if err != nil {
-		response := helper.APIResponseError("Failed to get detail campaign", http.StatusBadRequest, nil)
+		response := helper.APIResponseError("Failed to get detail campaign", http.StatusBadRequest, err)
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 	campaignDetail, err := h.service.GetCampaignById(input)
 	if err != nil {
-		response := helper.APIResponseError("Failed to get detail campaign", http.StatusBadRequest, nil)
+		response := helper.APIResponseError("Failed to get detail campaign", http.StatusBadRequest, err)
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
@@ -85,5 +85,43 @@ func (h *campaignHandler) CreateCampaign(c *gin.Context) {
 		return
 	}
 	response := helper.APIResponseSuccess("Success to create campaign", campaign.FormatCampaign(newCampaign))
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *campaignHandler) UpdateCampaign(c *gin.Context) {
+
+	var inputId campaign.GetCampaignDetailInput
+
+	err := c.ShouldBindUri(&inputId)
+
+	if err != nil {
+		response := helper.APIResponseError("Failed to update campaign", http.StatusBadRequest, err)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	var inputData campaign.CreateCampaignInput
+	err = c.ShouldBindJSON(&inputData)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessage := gin.H{"errors": errors}
+
+		response := helper.APIResponseError("Failed to update campaign", http.StatusUnprocessableEntity, errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	// Ambil current user
+	currentUser := c.MustGet("currentUser").(user.User)
+	inputData.User = currentUser
+
+	updatedCampaign, err := h.service.UpdateCampaign(inputId, inputData)
+	if err != nil {
+		response := helper.APIResponseError("Failed to update campaign", http.StatusBadRequest, err)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponseSuccess("Success to update campaign", campaign.FormatCampaign(updatedCampaign))
 	c.JSON(http.StatusOK, response)
 }
