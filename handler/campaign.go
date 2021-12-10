@@ -4,6 +4,7 @@ import (
 	"bwastartup/campaign"
 	"bwastartup/helper"
 	"bwastartup/user"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -124,4 +125,100 @@ func (h *campaignHandler) UpdateCampaign(c *gin.Context) {
 
 	response := helper.APIResponseSuccess("Success to update campaign", campaign.FormatCampaign(updatedCampaign))
 	c.JSON(http.StatusOK, response)
+}
+
+func (h *campaignHandler) UploadImage(c *gin.Context) {
+	// var input campaign.CreateImageInput
+	// err := c.ShouldBindJSON(&input)
+	// if err != nil {
+	// 	errors := helper.FormatValidationError(err)
+	// 	errorMessage := gin.H{"errors": errors}
+
+	// 	response := helper.APIResponseError("Failed to create campaign image", http.StatusUnprocessableEntity, errorMessage)
+	// 	c.JSON(http.StatusUnprocessableEntity, response)
+	// 	return
+	// }
+
+	// var campaignID campaign.GetCampaignDetailInput
+
+	// err = c.ShouldBindUri(&campaignID)
+
+	// if err != nil {
+	// 	response := helper.APIResponseError("Failed to upload campaign imag", http.StatusBadRequest, err)
+	// 	c.JSON(http.StatusBadRequest, response)
+	// 	return
+	// }
+
+	// file, err := c.FormFile("file")
+
+	// if err != nil {
+	// 	data := gin.H{"is_uploaded": false}
+	// 	response := helper.APIResponseError("Failed to upload campaign image", http.StatusBadRequest, data)
+	// 	c.JSON(http.StatusBadRequest, response)
+	// 	return
+	// }
+
+	// path := fmt.Sprintf("images-campaign/%d-%s", campaignID.ID, file.Filename)
+	// err = c.SaveUploadedFile(file, path)
+	// if err != nil {
+	// 	data := gin.H{"is_uploaded": false}
+	// 	response := helper.APIResponseError("Failed to upload campaign image", http.StatusBadRequest, data)
+	// 	c.JSON(http.StatusBadRequest, response)
+	// 	return
+	// }
+
+	// newImage, err := h.service.SaveCampaignImage(campaignID.ID, input, path)
+	// if err != nil {
+	// 	data := gin.H{"is_uploaded": false}
+	// 	response := helper.APIResponseError("Failed to upload campaign image", http.StatusBadRequest, data)
+	// 	c.JSON(http.StatusBadRequest, response)
+	// 	return
+	// }
+
+	// response := helper.APIResponseSuccess("Success to upload campaign image", newImage)
+	// c.JSON(http.StatusBadRequest, response)
+	var input campaign.CreateImageInput
+	err := c.ShouldBind(&input)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessage := gin.H{"errors": errors}
+
+		response := helper.APIResponseError("Failed to update campaign", http.StatusUnprocessableEntity, errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.APIResponseError("Failed to upload campaign image", http.StatusBadRequest, data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	// Ambil current user
+	currentUser := c.MustGet("currentUser").(user.User)
+	// HArusnya dari JwT
+	userID := currentUser.ID
+	input.User = currentUser
+	path := fmt.Sprintf("images/campaign/%d-%s", userID, file.Filename)
+	err = c.SaveUploadedFile(file, path)
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.APIResponseError("Failed to upload campaign image", http.StatusBadRequest, data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	newImage, err := h.service.SaveCampaignImage(input, path)
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.APIResponseError("Failed to upload campaign image", http.StatusBadRequest, data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponseSuccess("Success to upload campaign image", newImage)
+	c.JSON(http.StatusBadRequest, response)
+
 }

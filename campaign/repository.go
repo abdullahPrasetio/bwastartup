@@ -1,6 +1,8 @@
 package campaign
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type Repository interface {
 	FindAll() ([]Campaign, error)
@@ -8,6 +10,8 @@ type Repository interface {
 	FindById(ID int) (Campaign, error)
 	Save(campaign Campaign) (Campaign, error)
 	Update(campaign Campaign) (Campaign, error)
+	CreateImage(campaignImage CampaignImage) (CampaignImage, error)
+	MarkAllImagesAsNonPrimary(campaignID int) (bool, error)
 }
 
 type repository struct {
@@ -60,4 +64,35 @@ func (r *repository) Update(campaign Campaign) (Campaign, error) {
 		return campaign, err
 	}
 	return campaign, nil
+}
+
+func (r *repository) CreateImage(campaignImage CampaignImage) (CampaignImage, error) {
+	err := r.db.Create(&campaignImage).Error
+	if err != nil {
+		return campaignImage, err
+	}
+
+	return campaignImage, nil
+}
+
+func (r *repository) MarkAllImagesAsNonPrimary(campaignID int) (bool, error) {
+	// var campaignImage CampaignImage
+	// err := r.db.Where("is_primary = 1").Where("campaign_id = ?", campaignID).First(&campaignImage).Error
+
+	// if err != nil {
+	// 	return false, err
+	// }
+	// // fmt.Println(campaignImage)
+	// campaignImage.IsPrimary = 0
+	// err = r.db.Save(&campaignImage).Error
+	// if err != nil {
+	// 	return false, err
+	// }
+
+	// return true, nil
+	err := r.db.Model(&CampaignImage{}).Where("campaign_id = ?", campaignID).Update("is_primary", false).Error
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
