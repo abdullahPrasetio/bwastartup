@@ -4,12 +4,14 @@ import (
 	"bwastartup/campaign"
 	"bwastartup/payment"
 	"errors"
+	"strconv"
 )
 
 type Service interface {
 	GetTransactionByCampaignID(input GetCampaignTransactionInput) ([]Transaction, error)
 	GetTransactionByUserID(userID int) ([]Transaction, error)
 	CreateTransaction(input CreateTransactionInput) (Transaction, error)
+	PaymentProcess(input TransactionNotificationInput) error
 }
 
 type service struct {
@@ -76,4 +78,40 @@ func (s *service) CreateTransaction(input CreateTransactionInput) (Transaction, 
 		return transactionNewUpdate, err
 	}
 	return transactionNewUpdate, nil
+}
+
+func (s *service) PaymentProcess(input TransactionNotificationInput) error {
+	transaction_id, _ := strconv.Atoi(input.OrderID)
+
+	transaction, err := s.repository.GetByID(transaction_id)
+	if err != nil {
+		return err
+	}
+
+	if input.PaymentType == "credit_card" && input.TransactionStatus == "capture" && input.FraudStatus == "accept" {
+		transaction.Status = "paid"
+	} else if input.TransactionStatus == "settlement" {
+		transaction.Status = "paid"
+	} else if input.TransactionStatus == "deny" || input.TransactionStatus == "expire" || input.TransactionStatus == "cancel" {
+		transaction.Status = "cancelled"
+	}
+
+	updatedTransaction, err := s.repository.Update(transaction)
+	if err != nil {
+		return err
+	}
+
+	campaign, err := s.campaignRepository.FindById(updatedTransaction.CampaignID)
+
+	if updatedTransaction.Status == "paid" {
+		campaign.BackerCount += 1
+		campaign.CurrentAmount += updatedTransaction.Amount
+
+		_, err := s.campaignRepository.Update(campaign)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
